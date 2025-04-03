@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Details #{{ order.id }} - {{ shop_name }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('orders') }}">My Orders</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Order #{{ order.id }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Order Details #{{ order.id }}</h5>
+                <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'paid' %}bg-success{% elif order.status == 'shipped' %}bg-info{% elif order.status == 'delivered' %}bg-primary{% elif order.status == 'cancelled' %}bg-danger{% endif %}">
+                    {% if order.status == 'pending' %}
+                    Pending
+                    {% elif order.status == 'paid' %}
+                    Paid
+                    {% elif order.status == 'shipped' %}
+                    Shipped
+                    {% elif order.status == 'delivered' %}
+                    Delivered
+                    {% elif order.status == 'cancelled' %}
+                    Cancelled
+                    {% endif %}
+                </span>
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                
+                <div class="table-responsive mt-3">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ "%.2f"|format(item.price / item.quantity) }} €</td>
+                                <td>{{ "%.2f"|format(item.price) }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Total:</th>
+                                <th>{{ "%.2f"|format(order.total_price) }} €</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% if show_delivery_texts %}
+                <div class="delivery-instructions mt-5"><h3>Delivery Information for Your Products</h3><div class="card"><div class="card-body">{% for item in order.items %}{% if item.product.delivery_text %}<div class="mb-3"><h5>{{ item.product.name }}</h5><p>{{ item.product.delivery_text }}</p></div>{% endif %}{% endfor %}</div></div></div>
+                {% endif %}
+
+            </div>
+            
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                {% if order.payment %}
+                <p><strong>Amount:</strong> {{ order.payment.amount }} LTC</p>
+                <p><strong>Status:</strong> 
+                    {% if order.payment.status == 'pending' %}
+                    <span class="badge bg-warning">Pending</span>
+                    {% elif order.payment.status == 'confirmed' %}
+                    <span class="badge bg-success">Confirmed</span>
+                    {% elif order.payment.status == 'failed' %}
+                    <span class="badge bg-danger">Failed</span>
+                    {% endif %}
+                </p>
+                
+                <p><strong>Litecoin Address:</strong><br>
+                <span class="small text-break">{{ order.payment.litecoin_address }}</span></p>
+                
+                {% if order.payment.txid %}
+                <p><strong>Transaction ID:</strong><br>
+                <span class="small text-break">{{ order.payment.txid }}</span></p>
+                {% endif %}
+                
+                {% if order.payment.status == 'pending' %}
+                <hr>
+                <div class="alert alert-info small">
+                    Please transfer {{ order.payment.amount }} LTC to the address above and then enter the transaction ID to confirm the payment.
+                </div>
+                
+                <form action="{{ url_for('verify_payment', order_id=order.id) }}" method="post">
+                    <div class="mb-3">
+                        <label for="txid" class="form-label">Transaction ID (TXID)</label>
+                        <input type="text" class="form-control" id="txid" name="txid" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Verify Payment</button>
+                </form>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-warning">
+                    No payment information available.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

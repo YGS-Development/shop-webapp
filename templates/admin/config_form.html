@@ -1,0 +1,50 @@
+{% extends "admin/dashboard.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2 class="h3">{{ 'Edit Configuration' if config else 'New Configuration' }}</h2>
+</div>
+
+<form method="POST">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="key" class="form-label">Key</label>
+                        <input type="text" class="form-control" id="key" name="key" 
+                               value="{{ config.key if config }}" {{ 'readonly' if config }} required>
+                        <div class="form-text">A unique identifier for this configuration</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="value" class="form-label">Value</label>
+                        <textarea class="form-control" id="value" name="value" rows="3" required>{{ config.value if config }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="2">{{ config.description if config }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    Actions
+                </div>
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-save"></i> Save
+                    </button>
+                    <a href="/admin/config" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
