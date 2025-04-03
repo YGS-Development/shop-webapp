@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - {{ shop_name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Complete your order</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Order Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ "%.2f"|format(item.total) }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2" class="text-end">Total:</th>
+                                <th>{{ "%.2f"|format(total) }} €</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Payment with Litecoin</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    Please transfer {{ ltc_amount }} LTC to the address below.
+                </div>
+                
+                <div class="payment-info">
+                    <p class="mb-2"><strong>Litecoin Address:</strong></p>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="ltc-address" value="{{ litecoin_address }}" readonly>
+                        <button class="btn btn-outline-primary" type="button" onclick="copyAddress()">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    
+                    <p class="mb-2"><strong>Amount:</strong> {{ ltc_amount }} LTC</p>
+                    
+                </div>
+                
+                <p class="ft">After completing the payment, proceed to the next step.</p>
+                
+                <form action="{{ url_for('place_order') }}" method="post">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-circle"></i> Place Order
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Create QR-Code
+        var qr = new QRious({
+            element: document.getElementById('qrcode'),
+            value: 'litecoin:{{ litecoin_address }}?amount={{ ltc_amount }}',
+            size: 200
+        });
+    });
+    
+    function copyAddress() {
+        var addressInput = document.getElementById('ltc-address');
+        addressInput.select();
+        document.execCommand('copy');
+        alert('Address copied to clipboard!');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "admin/dashboard.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h2 class="h3">Order #{{ order.id }}</h2>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/admin/orders" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Ordered Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ "%.2f"|format(item.price) }} €</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ "%.2f"|format(item.price * item.quantity) }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Total:</th>
+                                <th>{{ "%.2f"|format(order.total_price) }} €</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            {% if show_delivery_texts %}<div class="delivery-instructions mt-5"><h3>Delivery Information for your Products</h3><div class="card"><div class="card-body">{% for item in order.items %}{% if item.product.delivery_text %}<div class="mb-3"><h5>{{ item.product.name }}</h5><p>{{ item.product.delivery_text }}</p></div>{% endif %}{% endfor %}</div></div></div>{% endif %}
+
+        </div>
+        
+        {% if order.payment %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if order.payment.status == 'confirmed' else 'warning' }}">
+                                {{ order.payment.status|capitalize }}
+                            </span>
+                        </p>
+                        <p><strong>Amount:</strong> {{ order.payment.amount }} LTC</p>
+                        <p><strong>Payment Address:</strong> 
+                            <code>{{ order.payment.litecoin_address }}</code>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Transaction ID:</strong> 
+                            {% if order.payment.txid %}
+                            <code>{{ order.payment.txid }}</code>
+                            {% else %}
+                            <span class="text-muted">No TXID</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Created at:</strong> 
+                            {{ order.payment.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        </p>
+                        <p><strong>Updated at:</strong> 
+                            {{ order.payment.updated_at.strftime('%d.%m.%Y %H:%M') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Order Status</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/admin/order/update-status/{{ order.id }}">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Update Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="pending" {{ 'selected' if order.status == 'pending' }}>Pending</option>
+                            <option value="paid" {{ 'selected' if order.status == 'paid' }}>Paid</option>
+                            <option value="shipped" {{ 'selected' if order.status == 'shipped' }}>Shipped</option>
+                            <option value="delivered" {{ 'selected' if order.status == 'delivered' }}>Delivered</option>
+                            <option value="cancelled" {{ 'selected' if order.status == 'cancelled' }}>Cancelled</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Update</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <img src="{{ order.customer.avatar if order.customer.avatar else 'https://cdn.discordapp.com/embed/avatars/0.png' }}" 
+                         alt="{{ order.customer.username }}" width="50" height="50" class="rounded-circle me-3">
+                    <div>
+                        <h6 class="mb-0">{{ order.customer.username }}</h6>
+                        <small class="text-muted">ID: {{ order.customer.id }}</small>
+                    </div>
+                </div>
+                <p><strong>Order Date:</strong> {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                <p><strong>Last Update:</strong> {{ order.updated_at.strftime('%d.%m.%Y %H:%M') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
